@@ -32,7 +32,7 @@ struct ContentView: View {
             }
 
             transcriptBox(title: "Source (EN)", text: coordinator.sourceTranscript)
-            transcriptBox(title: "Translated (BG)", text: coordinator.translatedTranscript)
+            transcriptBox(title: "Translated (DE)", text: coordinator.translatedTranscript)
         }
         .padding()
         .translationTask(coordinator.translationConfig) { session in
