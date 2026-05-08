@@ -16,14 +16,6 @@ final class InterpreterCoordinator {
     private(set) var statusMessage = ""
     private(set) var sourceTranscript = ""
     private(set) var translatedTranscript = ""
-    var textToSpeechMuted: Bool = false {
-        didSet {
-            playback.muted = textToSpeechMuted
-        }
-    }
-
-    var translationConfig: TranslationSession.Configuration?
-
     private let suppressor = EchoSuppressor()
     private let translator = TranslationService()
     private let playback: PlaybackQueue
@@ -33,6 +25,14 @@ final class InterpreterCoordinator {
     private var chunker: Chunker
 
     private var tasks: [Task<Void, Never>] = []
+
+    var textToSpeechMuted: Bool = false {
+        didSet {
+            playback.muted = textToSpeechMuted
+        }
+    }
+
+    var translationConfig: TranslationSession.Configuration?
 
     init() {
         self.chunker = Chunker(suppressor: suppressor)
