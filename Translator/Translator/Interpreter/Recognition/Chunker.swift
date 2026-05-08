@@ -20,13 +20,13 @@ actor Chunker {
         self.continuation = c
     }
 
-    func ingest(_ event: RecognitionEvent) {
+    func ingest(_ event: RecognitionEvent) async {
         guard case .final(let text) = event else { return }
 
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        if suppressor.shouldSuppress(trimmed) {
+        if await suppressor.shouldSuppress(trimmed) {
             print("[Chunker] suppressed final: \"\(trimmed)\"")
             return
         }

@@ -112,7 +112,7 @@ final class InterpreterCoordinator {
                     case .partial(let t), .final(let t): return t
                     }
                 }()
-                if suppressor.shouldSuppress(text) {
+                if await suppressor.shouldSuppress(text) {
                     continue
                 }
                 self?.applyRecognitionEvent(event)
@@ -126,7 +126,7 @@ final class InterpreterCoordinator {
             for await chunk in chunkerStream {
                 if Task.isCancelled { break }
                 print("[Translate] received chunk #\(chunk.id): \"\(chunk.text)\"")
-                suppressor.record(chunk.text)
+                await suppressor.record(chunk.text)
                 Task { @MainActor in
                     do {
                         let translated = try await translator.translate(chunk)

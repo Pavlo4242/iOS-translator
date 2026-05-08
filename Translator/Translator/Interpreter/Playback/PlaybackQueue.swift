@@ -55,7 +55,8 @@ final class PlaybackQueue: NSObject, AVSpeechSynthesizerDelegate {
             return
         }
 
-        suppressor.record(next.translatedText)
+        let textToSpeak = next.translatedText
+        Task { [suppressor] in await suppressor.record(textToSpeak) }
         isSpeaking = true
         let utterance = AVSpeechUtterance(string: next.translatedText)
         utterance.voice = AVSpeechSynthesisVoice(language: Lang.targetLocale.identifier)
