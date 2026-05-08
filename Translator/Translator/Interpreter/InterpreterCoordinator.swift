@@ -25,11 +25,12 @@ final class InterpreterCoordinator {
     var translationConfig: TranslationSession.Configuration?
 
     private let suppressor = EchoSuppressor()
-    private let mic = MicCapture()
-    private let recognition = RecognitionService()
-    private let chunker: Chunker
     private let translator = TranslationService()
     private let playback: PlaybackQueue
+
+    private var mic = MicCapture()
+    private var recognition = RecognitionService()
+    private var chunker: Chunker
 
     private var tasks: [Task<Void, Never>] = []
 
@@ -50,6 +51,10 @@ final class InterpreterCoordinator {
         translatedTranscript = ""
         finalizedSource = ""
 
+        mic = MicCapture()
+        recognition = RecognitionService()
+        chunker = Chunker(suppressor: suppressor)
+
         if var translationConfig {
             translationConfig.invalidate()
         }
@@ -67,9 +72,15 @@ final class InterpreterCoordinator {
         statusMessage = ""
         for t in tasks { t.cancel() }
         tasks.removeAll()
-        Task { await mic.stop() }
-        Task { await recognition.stop() }
-        Task { await chunker.finish() }
+
+        let oldMic = mic
+        let oldRecognition = recognition
+        let oldChunker = chunker
+        Task {
+            await oldMic.stop()
+            await oldRecognition.stop()
+            await oldChunker.finish()
+        }
         playback.reset()
         AudioSessionManager.deactivate()
     }
@@ -97,7 +108,7 @@ final class InterpreterCoordinator {
         }
 
         let micTask = Task { [mic, recognition, playback] in
-            for await buffer in mic.buffers {
+            for await buffer in await mic.buffers {
                 if Task.isCancelled { break }
                 if playback.isSpeaking { continue }
                 await recognition.ingest(buffer)
