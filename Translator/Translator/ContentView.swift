@@ -21,9 +21,9 @@ struct ContentView: View {
 
                 Spacer()
 
-                Toggle("Mute TTS", isOn: $coordinator.textToSpeechMuted)
+                Toggle("Mute", isOn: $coordinator.textToSpeechMuted)
                     .labelsHidden()
-                Text("Mute TTS").font(.caption)
+                Text("Mute").font(.caption)
             }
 
             if !coordinator.statusMessage.isEmpty {

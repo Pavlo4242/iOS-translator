@@ -7,16 +7,15 @@
 
 import AVFoundation
 
-final class MicCapture: @unchecked Sendable {
+actor MicCapture {
     private let engine = AVAudioEngine()
-    private var continuation: AsyncStream<AVAudioPCMBuffer>.Continuation?
-
+    private nonisolated let continuation: AsyncStream<AVAudioPCMBuffer>.Continuation
     let buffers: AsyncStream<AVAudioPCMBuffer>
 
     init() {
-        var cont: AsyncStream<AVAudioPCMBuffer>.Continuation!
-        self.buffers = AsyncStream { c in cont = c }
-        self.continuation = cont
+        let (stream, continuation) = AsyncStream.makeStream(of: AVAudioPCMBuffer.self)
+        self.buffers = stream
+        self.continuation = continuation
     }
 
     var inputFormat: AVAudioFormat { engine.inputNode.inputFormat(forBus: 0) }
@@ -34,9 +33,10 @@ final class MicCapture: @unchecked Sendable {
             )
         }
 
+        let continuationStream = self.continuation
         input.removeTap(onBus: 0)
-        input.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, _ in
-            self?.continuation?.yield(buffer)
+        input.installTap(onBus: 0, bufferSize: 4096, format: format) { buffer, _ in
+            continuationStream.yield(buffer)
         }
 
         engine.prepare()
@@ -46,6 +46,6 @@ final class MicCapture: @unchecked Sendable {
     func stop() {
         engine.inputNode.removeTap(onBus: 0)
         if engine.isRunning { engine.stop() }
-        continuation?.finish()
+        continuation.finish()
     }
 }

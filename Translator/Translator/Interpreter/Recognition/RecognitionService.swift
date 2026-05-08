@@ -8,7 +8,7 @@
 import AVFoundation
 import Speech
 
-final class RecognitionService: @unchecked Sendable {
+actor RecognitionService {
     private var analyzer: SpeechAnalyzer?
     private var transcriber: SpeechTranscriber?
     private var inputBuilder: AsyncStream<AnalyzerInput>.Continuation?
@@ -73,9 +73,9 @@ final class RecognitionService: @unchecked Sendable {
                     let text = String(result.text.characters)
                     print("[Recognition] result #\(resultCount) isFinal=\(result.isFinal) text=\"\(text)\"")
                     if result.isFinal {
-                        self.eventsContinuation?.yield(.final(text))
+                        await self.eventsContinuation?.yield(.final(text))
                     } else {
-                        self.eventsContinuation?.yield(.partial(text))
+                        await self.eventsContinuation?.yield(.partial(text))
                     }
                 }
                 print("[Recognition] results stream ended after \(resultCount) results")

@@ -67,7 +67,7 @@ final class InterpreterCoordinator {
         statusMessage = ""
         for t in tasks { t.cancel() }
         tasks.removeAll()
-        mic.stop()
+        Task { await mic.stop() }
         Task { await recognition.stop() }
         Task { await chunker.finish() }
         playback.reset()
@@ -86,8 +86,8 @@ final class InterpreterCoordinator {
             }
 
             try await recognition.start()
-            try mic.start()
-            print("[Interpreter] mic format: \(mic.inputFormat)")
+            try await mic.start()
+            print("[Interpreter] mic format: \(await mic.inputFormat)")
             statusMessage = "Listening"
         } catch {
             print("[Interpreter] boot error: \(error)")
@@ -100,7 +100,7 @@ final class InterpreterCoordinator {
             for await buffer in mic.buffers {
                 if Task.isCancelled { break }
                 if playback.isSpeaking { continue }
-                recognition.ingest(buffer)
+                await recognition.ingest(buffer)
             }
         }
 
