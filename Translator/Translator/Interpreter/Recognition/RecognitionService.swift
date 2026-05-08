@@ -95,8 +95,8 @@ final class RecognitionService: @unchecked Sendable {
             let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio + 1024)
             guard let out = AVAudioPCMBuffer(pcmFormat: target, frameCapacity: capacity) else { return }
             var supplied = false
-            var err: NSError?
-            conv.convert(to: out, error: &err) { _, status in
+            var error: NSError?
+            conv.convert(to: out, error: &error) { _, status in
                 if supplied {
                     status.pointee = .noDataNow
                     return nil
@@ -105,7 +105,7 @@ final class RecognitionService: @unchecked Sendable {
                 status.pointee = .haveData
                 return buffer
             }
-            if err != nil { return }
+            if error != nil { return }
             converted = out
         }
 
