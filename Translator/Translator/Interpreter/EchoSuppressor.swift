@@ -15,8 +15,8 @@ nonisolated final class EchoSuppressor: @unchecked Sendable {
 
     private var entries: [Entry] = []
     private let lock = NSLock()
-    private let timeToLive: TimeInterval = 30
-    private let capacity = 10
+    private let timeToLive: TimeInterval = 12
+    private let capacity = 16
 
     func record(_ text: String) {
         lock.lock()
@@ -27,19 +27,16 @@ nonisolated final class EchoSuppressor: @unchecked Sendable {
 
     func shouldSuppress(_ text: String) -> Bool {
         let now = Date()
-        let normalizedText = normalize(text)
-        guard !normalizedText.isEmpty else { return false }
+        let needle = normalize(text)
+        guard !needle.isEmpty else { return false }
+
         lock.lock()
         defer { lock.unlock() }
-        entries.removeAll { now.timeIntervalSince($0.timestamp) > timeToLive }
-        for entry in entries {
-            if entry.text.contains(normalizedText) || normalizedText.contains(entry.text) {
-                return true
-            }
 
-            if tokenOverlap(entry.text, normalizedText) >= 0.6 {
-                return true
-            }
+        entries.removeAll { now.timeIntervalSince($0.timestamp) > timeToLive }
+        for entry in entries where entry.text.contains(needle) {
+            print("[EchoSuppressor] suppress (substring of \"\(entry.text)\"): \"\(needle)\"")
+            return true
         }
         return false
     }
@@ -49,13 +46,5 @@ nonisolated final class EchoSuppressor: @unchecked Sendable {
             .components(separatedBy: .punctuationCharacters).joined()
             .components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
             .joined(separator: " ")
-    }
-
-    private func tokenOverlap(_ a: String, _ b: String) -> Double {
-        let ta = Set(a.split(separator: " "))
-        let tb = Set(b.split(separator: " "))
-        guard !ta.isEmpty, !tb.isEmpty else { return 0 }
-        let inter = ta.intersection(tb).count
-        return Double(inter) / Double(min(ta.count, tb.count))
     }
 }

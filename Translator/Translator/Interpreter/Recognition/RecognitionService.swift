@@ -63,53 +63,67 @@ final class RecognitionService: @unchecked Sendable {
         try await analyzer.start(inputSequence: inputSequence)
 
         // Pump results.
+        print("[Recognition] analyzer started. targetFormat=\(format)")
         Task { [weak self] in
             guard let self else { return }
             do {
+                var resultCount = 0
                 for try await result in transcriber.results {
+                    resultCount += 1
                     let text = String(result.text.characters)
+                    print("[Recognition] result #\(resultCount) isFinal=\(result.isFinal) text=\"\(text)\"")
                     if result.isFinal {
                         self.eventsContinuation?.yield(.final(text))
                     } else {
                         self.eventsContinuation?.yield(.partial(text))
                     }
                 }
+                print("[Recognition] results stream ended after \(resultCount) results")
             } catch {
-                print("Stream ended / cancelled: \(error)")
+                print("[Recognition] results stream error: \(error)")
             }
         }
     }
 
     func ingest(_ buffer: AVAudioPCMBuffer) {
-        guard let target = targetFormat, let builder = inputBuilder else { return }
+        guard let targetFormat, let inputBuilder else { return }
 
-        let converted: AVAudioPCMBuffer
-        if buffer.format == target {
-            converted = buffer
-        } else {
-            if converter == nil || converter?.outputFormat != target {
-                converter = AVAudioConverter(from: buffer.format, to: target)
-            }
-            guard let conv = converter else { return }
-            let ratio = target.sampleRate / buffer.format.sampleRate
-            let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio + 1024)
-            guard let out = AVAudioPCMBuffer(pcmFormat: target, frameCapacity: capacity) else { return }
-            var supplied = false
-            var error: NSError?
-            conv.convert(to: out, error: &error) { _, status in
-                if supplied {
-                    status.pointee = .noDataNow
-                    return nil
-                }
-                supplied = true
-                status.pointee = .haveData
-                return buffer
-            }
-            if error != nil { return }
-            converted = out
+        if buffer.format == targetFormat {
+            inputBuilder.yield(AnalyzerInput(buffer: buffer))
+            return
         }
 
-        builder.yield(AnalyzerInput(buffer: converted))
+        if converter == nil || converter?.outputFormat != targetFormat {
+            converter = AVAudioConverter(from: buffer.format, to: targetFormat)
+        }
+
+        guard let converter else { return }
+
+        let ratio = targetFormat.sampleRate / buffer.format.sampleRate
+        let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio + 1024)
+        guard let out = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else { return }
+
+        var supplied = false
+        var error: NSError?
+        let status = converter.convert(to: out, error: &error) { _, statusPtr in
+            if supplied {
+                statusPtr.pointee = .noDataNow
+                return nil
+            }
+            supplied = true
+            statusPtr.pointee = .haveData
+            return buffer
+        }
+
+        if let error {
+            return
+        }
+
+        if status == .error || out.frameLength == 0 {
+            return
+        }
+
+        inputBuilder.yield(AnalyzerInput(buffer: out))
     }
 
     func stop() async {

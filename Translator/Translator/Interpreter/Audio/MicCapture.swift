@@ -23,9 +23,17 @@ final class MicCapture: @unchecked Sendable {
 
     func start() throws {
         let input = engine.inputNode
-        try? input.setVoiceProcessingEnabled(true)
-
         let format = input.inputFormat(forBus: 0)
+        guard format.channelCount > 0,
+              format.sampleRate > 0 else {
+            throw NSError(
+                domain: "MicCapture",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey:
+                    "Input format unavailable (\(format)). Audio session may not be active for recording."]
+            )
+        }
+
         input.removeTap(onBus: 0)
         input.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, _ in
             self?.continuation?.yield(buffer)

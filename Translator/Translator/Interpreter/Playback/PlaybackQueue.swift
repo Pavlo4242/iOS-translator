@@ -14,6 +14,10 @@ final class PlaybackQueue: NSObject, AVSpeechSynthesizerDelegate {
     private var nextIdToPlay = 0
     private var currentlySpeakingId: Int?
 
+    // True from the moment the play is ready until its
+    // didFinish/didCancel callback. Read by the coordinator to gate mic input.
+    private(set) nonisolated(unsafe) var isSpeaking: Bool = false
+
     private let suppressor: EchoSuppressor
     var muted: Bool = false
 
@@ -33,6 +37,7 @@ final class PlaybackQueue: NSObject, AVSpeechSynthesizerDelegate {
         pending.removeAll()
         currentlySpeakingId = nil
         nextIdToPlay = 0
+        isSpeaking = false
     }
 
     private func playIfReady() {
@@ -51,6 +56,7 @@ final class PlaybackQueue: NSObject, AVSpeechSynthesizerDelegate {
         }
 
         suppressor.record(next.translatedText)
+        isSpeaking = true
         let utterance = AVSpeechUtterance(string: next.translatedText)
         utterance.voice = AVSpeechSynthesisVoice(language: Lang.targetLocale.identifier)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
@@ -69,6 +75,7 @@ final class PlaybackQueue: NSObject, AVSpeechSynthesizerDelegate {
 
     private func advance() {
         currentlySpeakingId = nil
+        isSpeaking = false
         nextIdToPlay += 1
         playIfReady()
     }
