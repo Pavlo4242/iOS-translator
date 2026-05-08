@@ -16,6 +16,7 @@ final class InterpreterCoordinator {
     private(set) var statusMessage = ""
     private(set) var sourceTranscript = ""
     private(set) var translatedTranscript = ""
+    private var finalizedSource = ""
     private let suppressor = EchoSuppressor()
     private let translator = TranslationService()
     private let playback: PlaybackQueue
@@ -84,8 +85,10 @@ final class InterpreterCoordinator {
         playback.reset()
         AudioSessionManager.deactivate()
     }
+}
 
-    private func bootPipeline() async {
+private extension InterpreterCoordinator {
+    func bootPipeline() async {
         do {
             try AudioSessionManager.configureForDuplex()
 
@@ -154,9 +157,7 @@ final class InterpreterCoordinator {
         tasks = [micTask, recognitionTask, translateTask]
     }
 
-    private var finalizedSource = ""
-
-    private func applyRecognitionEvent(_ event: RecognitionEvent) {
+    func applyRecognitionEvent(_ event: RecognitionEvent) {
         switch event {
         case .partial(let text):
             sourceTranscript = finalizedSource.isEmpty ? text : finalizedSource + " " + text
@@ -169,7 +170,7 @@ final class InterpreterCoordinator {
         }
     }
 
-    private func appendTranslated(_ text: String) {
+    func appendTranslated(_ text: String) {
         if translatedTranscript.isEmpty {
             translatedTranscript = text
         } else {
