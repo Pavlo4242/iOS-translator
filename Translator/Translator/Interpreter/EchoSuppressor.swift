@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class EchoSuppressor: @unchecked Sendable {
+nonisolated final class EchoSuppressor: @unchecked Sendable {
     private struct Entry {
         let text: String
         let timestamp: Date
