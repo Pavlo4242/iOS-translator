@@ -13,11 +13,21 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 16) {
+            transcriptBox(title: "Source (EN)", text: coordinator.sourceTranscript)
+            transcriptBox(title: "Translated (DE)", text: coordinator.translatedTranscript)
+
+            if !coordinator.statusMessage.isEmpty {
+                Text(coordinator.statusMessage)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+            }
+
             HStack {
                 Button(coordinator.isRunning ? "Stop" : "Start") {
                     coordinator.isRunning ? coordinator.stop() : coordinator.start()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
 
                 Spacer()
 
@@ -25,14 +35,6 @@ struct ContentView: View {
                     .labelsHidden()
                 Text("Mute").font(.caption)
             }
-
-            if !coordinator.statusMessage.isEmpty {
-                Text(coordinator.statusMessage)
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-
-            transcriptBox(title: "Source (EN)", text: coordinator.sourceTranscript)
-            transcriptBox(title: "Translated (DE)", text: coordinator.translatedTranscript)
         }
         .padding()
         .translationTask(coordinator.translationConfig) { session in
