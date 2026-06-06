@@ -104,7 +104,7 @@ actor RecognitionService {
         guard let out = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else { return }
 
         // Wrap the supplied boolean in a class to allow mutable capture without concurrent mutation warnings.
-        class SuppliedState {
+        final class SuppliedState: @unchecked Sendable {
             var value = false
         }
         let supplied = SuppliedState()

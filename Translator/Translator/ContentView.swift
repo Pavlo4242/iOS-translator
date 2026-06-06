@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Translation
+@preconcurrency import Translation
 
 struct ContentView: View {
     @State private var coordinator = InterpreterCoordinator()
