@@ -64,14 +64,20 @@ final class PlaybackQueue: NSObject, AVSpeechSynthesizerDelegate {
         synth.speak(utterance)
     }
 
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
                            didFinish utterance: AVSpeechUtterance) {
-        self.advance()
+        // Route back to the MainActor since PlaybackQueue state is actor-isolated
+        Task { @MainActor in
+            self.advance()
+        }
     }
 
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
                            didCancel utterance: AVSpeechUtterance) {
-        self.advance()
+        // Route back to the MainActor since PlaybackQueue state is actor-isolated
+        Task { @MainActor in
+            self.advance()
+        }
     }
 
     private func advance() {
