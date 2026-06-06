@@ -64,14 +64,14 @@ final class PlaybackQueue: NSObject, AVSpeechSynthesizerDelegate {
         synth.speak(utterance)
     }
 
-    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
-                                       didFinish utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.advance() }
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+                           didFinish utterance: AVSpeechUtterance) {
+        self.advance()
     }
 
-    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
-                                       didCancel utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.advance() }
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+                           didCancel utterance: AVSpeechUtterance) {
+        self.advance()
     }
 
     private func advance() {

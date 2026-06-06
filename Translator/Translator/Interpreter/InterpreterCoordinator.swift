@@ -110,7 +110,7 @@ private extension InterpreterCoordinator {
             return
         }
 
-        let micTask = Task { [mic, recognition, playback] in
+        let micTask = Task { @MainActor [mic, recognition, playback] in
             for await buffer in await mic.buffers {
                 if Task.isCancelled { break }
                 if playback.isSpeaking { continue }
@@ -118,7 +118,7 @@ private extension InterpreterCoordinator {
             }
         }
 
-        let recognitionTask = Task { [recognition, chunker, suppressor, weak self] in
+        let recognitionTask = Task { @MainActor [recognition, chunker, suppressor, weak self] in
             for await event in recognition.events {
                 if Task.isCancelled { break }
                 let text: String = {
@@ -136,20 +136,18 @@ private extension InterpreterCoordinator {
 
         let chunkerStream = chunker.chunks
 
-        let translateTask = Task { [translator, playback, suppressor, weak self] in
+        let translateTask = Task { @MainActor [translator, playback, suppressor, weak self] in
             for await chunk in chunkerStream {
                 if Task.isCancelled { break }
                 print("[Translate] received chunk #\(chunk.id): \"\(chunk.text)\"")
                 await suppressor.record(chunk.text)
-                Task { @MainActor in
-                    do {
-                        let translated = try await translator.translate(chunk)
-                        print("[Translate] done #\(translated.id): \"\(translated.translatedText)\"")
-                        self?.appendTranslated(translated.translatedText)
-                        playback.enqueue(translated)
-                    } catch {
-                        print("[Translate] failed #\(chunk.id): \(error)")
-                    }
+                do {
+                    let translated = try await translator.translate(chunk)
+                    print("[Translate] done #\(translated.id): \"\(translated.translatedText)\"")
+                    self?.appendTranslated(translated.translatedText)
+                    playback.enqueue(translated)
+                } catch {
+                    print("[Translate] failed #\(chunk.id): \(error)")
                 }
             }
         }

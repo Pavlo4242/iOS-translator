@@ -29,3 +29,8 @@ enum RecognitionEvent: Sendable {
     case partial(String)
     case final(String)
 }
+
+import AVFoundation
+
+extension AVAudioPCMBuffer: @unchecked Sendable {}
+extension AVAudioFormat: @unchecked Sendable {}

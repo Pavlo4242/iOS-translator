@@ -14,9 +14,9 @@ jobs:
       - name: Select Xcode 26
         run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
 
-      # ── INSTALL XCODEGEN ────────────────────────────────────────────────
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      # ── INSTALL TOOLS ───────────────────────────────────────────────────
+      - name: Install XcodeGen & xcbeautify
+        run: brew install xcodegen xcbeautify
 
       # ── GENERATE & BUILD ────────────────────────────────────────────────
       - name: Generate Project File
@@ -24,8 +24,9 @@ jobs:
 
       - name: Build Application
         run: |
+          set -o pipefail
           xcodebuild clean build \
             -project Translator.xcodeproj \
             -scheme Translator \
             -destination 'generic/platform=iOS' \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO | xcbeautify
