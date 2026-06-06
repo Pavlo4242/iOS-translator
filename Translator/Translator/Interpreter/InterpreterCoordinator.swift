@@ -5,7 +5,7 @@
 //  Created by Petar Yanakiev on 8.05.26.
 //
 
-import AVFoundation
+@preconcurrency import AVFoundation
 import Translation
 import Observation
 

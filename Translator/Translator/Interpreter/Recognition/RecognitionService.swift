@@ -5,7 +5,7 @@
 //  Created by Petar Yanakiev on 7.05.26.
 //
 
-import AVFoundation
+@preconcurrency import AVFoundation
 import Speech
 
 actor RecognitionService {

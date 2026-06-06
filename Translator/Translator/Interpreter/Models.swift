@@ -32,5 +32,5 @@ enum RecognitionEvent: Sendable {
 
 import AVFoundation
 
-// Removed the Sendable extensions for AVAudioPCMBuffer and AVAudioFormat
-// since the current AVFAudio framework already guarantees this conformance.
+extension AVAudioPCMBuffer: @unchecked Sendable {}
+extension AVAudioFormat: @unchecked Sendable {}
