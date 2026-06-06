@@ -10,7 +10,7 @@
 actor MicCapture {
     private let engine = AVAudioEngine()
     private nonisolated let continuation: AsyncStream<AVAudioPCMBuffer>.Continuation
-    let buffers: AsyncStream<AVAudioPCMBuffer>
+    nonisolated let buffers: AsyncStream<AVAudioPCMBuffer>
 
     init() {
         let (stream, continuation) = AsyncStream.makeStream(of: AVAudioPCMBuffer.self)

@@ -63,7 +63,7 @@ actor RecognitionService {
         try await analyzer.start(inputSequence: inputSequence)
 
         // Pump results.
-        print("[Recognition] analyzer started. targetFormat=\(format)")
+        print("[Recognition] analyzer started. targetFormat=\(String(describing: format))")
         Task { [weak self] in
             guard let self else { return }
             do {
@@ -103,19 +103,23 @@ actor RecognitionService {
         let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio + 1024)
         guard let out = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else { return }
 
-        var supplied = false
+        // Wrap the supplied boolean in a class to allow mutable capture without concurrent mutation warnings.
+        class SuppliedState {
+            var value = false
+        }
+        let supplied = SuppliedState()
         var error: NSError?
         let status = converter.convert(to: out, error: &error) { _, statusPtr in
-            if supplied {
+            if supplied.value {
                 statusPtr.pointee = .noDataNow
                 return nil
             }
-            supplied = true
+            supplied.value = true
             statusPtr.pointee = .haveData
             return buffer
         }
 
-        if let error {
+        if error != nil {
             return
         }
 

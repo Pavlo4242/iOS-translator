@@ -5,7 +5,7 @@
 //  Created by Petar Yanakiev on 8.05.26.
 //
 
-import Translation
+@preconcurrency import Translation
 
 @MainActor
 final class TranslationService {

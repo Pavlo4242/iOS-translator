@@ -31,6 +31,3 @@ enum RecognitionEvent: Sendable {
 }
 
 import AVFoundation
-
-extension AVAudioPCMBuffer: @unchecked Sendable {}
-extension AVAudioFormat: @unchecked Sendable {}

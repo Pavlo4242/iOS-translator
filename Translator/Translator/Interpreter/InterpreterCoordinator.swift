@@ -111,7 +111,7 @@ private extension InterpreterCoordinator {
         }
 
         let micTask = Task { @MainActor [mic, recognition, playback] in
-            for await buffer in await mic.buffers {
+            for await buffer in mic.buffers {
                 if Task.isCancelled { break }
                 if playback.isSpeaking { continue }
                 await recognition.ingest(buffer)
