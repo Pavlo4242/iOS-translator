@@ -1,0 +1,26 @@
+name: Translator
+options:
+  bundleIdPrefix: com.pavlo
+targets:
+  Translator:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: Translator/Translator
+        excludes:
+          - "Info.plist"
+    info:
+      path: Translator/Translator/Info.plist
+      properties:
+        CFBundleDisplayName: Translator
+        CFBundleIdentifier: com.pavlo.Translator
+        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.0"
+        UILaunchScreen: {}
+        NSMicrophoneUsageDescription: "We need access to the microphone for real-time speech translation."
+        NSSpeechRecognitionUsageDescription: "We need speech recognition permission to transcribe your voice."
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
