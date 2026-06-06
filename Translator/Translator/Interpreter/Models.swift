@@ -9,9 +9,9 @@ import Foundation
 
 enum Lang {
     static let source = Locale.Language(identifier: "en-US")
-    static let target = Locale.Language(identifier: "de-DE")
+    static let target = Locale.Language(identifier: "th-TH")
     static let sourceLocale = Locale(identifier: "en-US")
-    static let targetLocale = Locale(identifier: "de-DE")
+    static let targetLocale = Locale(identifier: "th-TH")
 }
 
 struct Chunk: Sendable, Identifiable {
