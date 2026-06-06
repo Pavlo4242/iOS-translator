@@ -1,0 +1,45 @@
+name: Build iOS-translator
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      # ── CACHE HOMEBREW ───────────────────────────────────────────────────
+      - name: Cache Homebrew Dependencies
+        id: cache-homebrew
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/xcodegen
+            /opt/homebrew/bin/xcodegen
+          key: ${{ runner.os }}-homebrew-xcodegen-${{ hashFiles('.github/workflows/build.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-homebrew-xcodegen-
+
+      # ── INSTALL XCODEGEN ────────────────────────────────────────────────
+      - name: Install XcodeGen
+        if: steps.cache-homebrew.outputs.cache-hit != 'true'
+        run: brew install xcodegen
+
+      # ── GENERATE & BUILD ────────────────────────────────────────────────
+      - name: Generate Project File
+        run: xcodegen generate --spec project.yml
+
+      - name: Build Application
+        run: |
+          xcodebuild clean build \
+            -project Translator.xcodeproj \
+            -scheme Translator \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO
