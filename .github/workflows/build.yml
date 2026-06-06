@@ -30,3 +30,25 @@ jobs:
             -scheme Translator \
             -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO | xcbeautify
+
+      # ── UPLOAD ARTIFACT ─────────────────────────────────────────────────
+      - name: Create and upload IPA
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "Translator.app" -type d -path "*/Build/Products/*" | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ App bundle not found"
+            exit 1
+          fi
+          echo "✅ Found app at: $APP_PATH"
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r Translator.ipa Payload
+          echo "IPA created: $(du -sh Translator.ipa | cut -f1)"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Translator-IPA
+          path: Translator.ipa
+          retention-days: 14
+          if-no-files-found: error
